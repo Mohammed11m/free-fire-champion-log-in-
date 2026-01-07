@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Free Fire Champion - نظام الإحصائيات</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&family=Orbitron:wght@400;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --gold: #ffb400;
+            --cyber-blue: #00f2ff;
+            --dark-core: #050a14;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: var(--dark-core);
+            color: #e2e8f0;
+            margin: 0;
+            text-align: right;
+        }
+
+        .font-game { font-family: 'Orbitron', sans-serif; }
+
+        .gold-text {
+            background: linear-gradient(to bottom, #ffb400, #fff385, #b38728);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 900;
+        }
+
+        .cyber-card {
+            background: rgba(10, 20, 35, 0.8);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 180, 0, 0.15);
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .gold-btn {
+            background: linear-gradient(45deg, #bf953f, #fcf6ba, #b38728);
+            color: #050a14;
+            font-weight: 900;
+            transition: 0.3s;
+            text-transform: uppercase;
+        }
+
+        .gold-btn:hover {
+            box-shadow: 0 0 20px rgba(255, 180, 0, 0.5);
+            transform: scale(1.02);
+        }
+
+        .custom-input {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            transition: 0.3s;
+            text-align: center;
+        }
+
+        .custom-input:focus {
+            border-color: var(--gold);
+            outline: none;
+            box-shadow: 0 0 10px rgba(255, 180, 0, 0.2);
+        }
+
+        .hidden-section { display: none !important; }
+
+        .stat-box {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: 0.3s;
+        }
+
+        .stat-box:hover {
+            border-color: var(--gold);
+            background: rgba(255, 180, 0, 0.05);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- قسم تسجيل الدخول -->
+    <div id="auth-section" class="min-h-screen flex items-center justify-center p-6 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-blue-900/20 via-slate-950 to-black">
+        <div class="cyber-card w-full max-w-md p-10 rounded-2xl border-t-4 border-t-yellow-500">
+            <div class="text-center mb-8">
+                <h1 id="main-logo-text" class="text-4xl font-black font-game gold-text tracking-widest uppercase">FREE FIRE CHAMPION</h1>
+                <p class="text-blue-400/50 text-xs mt-2 font-bold uppercase tracking-tighter">قاعدة البيانات المركزية للاعبين</p>
+            </div>
+
+            <div class="flex gap-2 mb-8 bg-black/50 p-1 rounded-lg">
+                <button onclick="switchTab('login')" id="login-tab" class="flex-1 py-2 rounded font-bold transition-all text-white bg-yellow-500/20">دخول</button>
+                <button onclick="switchTab('register')" id="register-tab" class="flex-1 py-2 rounded font-bold transition-all text-gray-500">تسجيل جديد</button>
+            </div>
+
+            <form onsubmit="handleAuth(event)" class="space-y-4">
+                <input type="text" id="player-id" required class="custom-input w-full p-4 rounded-xl font-bold" placeholder="معرف اللاعب (ID)">
+                <input type="password" id="password" required class="custom-input w-full p-4 rounded-xl" placeholder="كلمة المرور">
+                <button type="submit" id="submit-btn" class="gold-btn w-full py-4 rounded-xl mt-4 text-lg">ولوج النظام</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- لوحة تحكم الإدارة -->
+    <div id="admin-section" class="hidden-section min-h-screen p-6 bg-slate-950">
+        <div class="max-w-6xl mx-auto">
+            <header class="flex justify-between items-center mb-8 bg-black/40 p-6 rounded-2xl border border-yellow-500/30">
+                <div>
+                    <h2 class="text-2xl font-black gold-text" id="admin-logo-text">FREE FIRE CHAMPION</h2>
+                    <p class="text-[10px] text-green-400 font-bold tracking-widest">صلاحيات المسؤول فقط</p>
+                </div>
+                <button onclick="logout()" class="bg-red-600/10 hover:bg-red-600 text-white px-6 py-2 rounded-xl text-xs font-bold border border-red-500/40">خروج</button>
+            </header>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="users-list"></div>
+        </div>
+    </div>
+
+    <!-- نافذة التعديل -->
+    <div id="edit-modal" class="hidden-section fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
+        <div class="cyber-card w-full max-w-2xl p-8 rounded-3xl border-yellow-500/50">
+            <h3 class="text-xl font-black gold-text mb-6 border-b border-white/10 pb-4">تعديل بيانات الحساب</h3>
+            
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <div class="space-y-1"><label class="text-[10px] text-gray-400 font-bold">ID</label><input type="text" id="edit-id" class="custom-input w-full p-3 rounded-lg text-sm"></div>
+                <div class="space-y-1"><label class="text-[10px] text-gray-400 font-bold">كلمة المرور</label><input type="text" id="edit-pass" class="custom-input w-full p-3 rounded-lg text-sm"></div>
+                <div class="space-y-1"><label class="text-[10px] text-yellow-500 font-bold">القتلات</label><input type="number" id="edit-kills" class="custom-input w-full p-3 rounded-lg text-sm"></div>
+                <div class="space-y-1"><label class="text-[10px] text-yellow-500 font-bold">البطولات</label><input type="number" id="edit-wins" class="custom-input w-full p-3 rounded-lg text-sm"></div>
+                <div class="space-y-1"><label class="text-[10px] text-red-400 font-bold">K/D</label><input type="text" id="edit-kd" class="custom-input w-full p-3 rounded-lg text-sm"></div>
+                <div class="space-y-1"><label class="text-[10px] text-green-400 font-bold">هيدشوت %</label><input type="number" id="edit-hs" class="custom-input w-full p-3 rounded-lg text-sm"></div>
+                <div class="space-y-1"><label class="text-[10px] text-blue-400 font-bold">المباريات</label><input type="number" id="edit-matches" class="custom-input w-full p-3 rounded-lg text-sm"></div>
+                <div class="space-y-1"><label class="text-[10px] text-purple-400 font-bold">الدقة %</label><input type="number" id="edit-accuracy" class="custom-input w-full p-3 rounded-lg text-sm"></div>
+            </div>
+
+            <div class="flex gap-3">
+                <button onclick="saveEdit()" class="gold-btn flex-1 py-4 rounded-xl text-xs uppercase">حفظ</button>
+                <button onclick="closeModal()" class="bg-white/5 hover:bg-white/10 flex-1 py-4 rounded-xl text-xs font-bold">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- لوحة إحصائيات اللاعب -->
+    <div id="dashboard-section" class="hidden-section min-h-screen bg-slate-950">
+        <nav class="px-8 py-4 border-b border-white/5 bg-black/40 flex justify-between items-center">
+            <h2 id="dash-logo-text" class="font-game font-black gold-text tracking-widest">FREE FIRE CHAMPION</h2>
+            <button onclick="logout()" class="text-[10px] font-bold border border-red-500/30 text-red-500 px-4 py-1 rounded hover:bg-red-500 transition">خروج</button>
+        </nav>
+
+        <main class="p-6 max-w-5xl mx-auto">
+            <div class="cyber-card p-8 rounded-2xl flex items-center gap-8 mb-8 border-r-4 border-r-yellow-500">
+                <div class="w-24 h-24 rounded-xl bg-yellow-500/10 border border-yellow-500/30 flex items-center justify-center text-5xl font-black gold-text" id="profile-icon">?</div>
+                <div>
+                    <h3 class="text-4xl font-black font-game text-white" id="display-id">ID: ---</h3>
+                    <p class="text-blue-400 text-xs font-bold mt-1 uppercase">إحصائيات المعركة</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                <div class="stat-box p-6 rounded-2xl text-center"><p class="text-[10px] text-gray-500 font-bold uppercase">القتلات</p><p class="text-2xl font-black font-game text-white" id="stat-kills">0</p></div>
+                <div class="stat-box p-6 rounded-2xl text-center"><p class="text-[10px] text-gray-500 font-bold uppercase">البطولات</p><p class="text-2xl font-black font-game text-white" id="stat-wins">0</p></div>
+                <div class="stat-box p-6 rounded-2xl text-center"><p class="text-[10px] text-gray-500 font-bold uppercase">K/D</p><p class="text-2xl font-black font-game text-yellow-500" id="stat-kd">0.00</p></div>
+                <div class="stat-box p-6 rounded-2xl text-center"><p class="text-[10px] text-gray-500 font-bold uppercase">هيدشوت</p><p class="text-2xl font-black font-game text-green-500" id="stat-hs">0%</p></div>
+            </div>
+
+            <div class="cyber-card p-6 rounded-2xl">
+                <h4 class="text-xs font-bold text-blue-400 uppercase mb-4 tracking-widest">بيانات إضافية</h4>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="flex justify-between items-center bg-black/20 p-4 rounded-lg"><span class="text-xs text-gray-500 font-bold">المباريات</span><span class="font-game font-bold" id="stat-matches">0</span></div>
+                    <div class="flex justify-between items-center bg-black/20 p-4 rounded-lg"><span class="text-xs text-gray-400 font-bold">الدقة %</span><span class="font-game font-bold text-blue-400" id="stat-accuracy">0%</span></div>
+                    <div class="flex justify-between items-center bg-black/20 p-4 rounded-lg"><span class="text-xs text-gray-400 font-bold">أعلى قتلات</span><span class="font-game font-bold text-red-500" id="stat-max-kills">0</span></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="custom-alert" class="fixed bottom-8 left-1/2 -translate-x-1/2 z-[300] transform translate-y-40 transition-all duration-500">
+        <div class="bg-yellow-500 text-black px-8 py-3 rounded-lg font-black text-xs shadow-2xl" id="alert-text">تنبيه</div>
+    </div>
+
+    <script>
+        // --- إعدادات النص المركزية ---
+        const SITE_NAME = "Free Fire Champion"; 
+        
+        // تطبيق الاسم في كل الواجهات تلقائياً
+        document.getElementById('main-logo-text').innerText = SITE_NAME;
+        document.getElementById('admin-logo-text').innerText = SITE_NAME;
+        document.getElementById('dash-logo-text').innerText = SITE_NAME;
+
+        let currentEditTarget = null;
+        let authMode = 'login';
+        const STORAGE_KEY = 'ff_champion_accounts_v1';
+        const ADMIN_ID = 'MOHAMMEDRAMZIA';
+        const ADMIN_PASS = 'MOHAMMED#2011';
+
+        function showAlert(msg) {
+            const alert = document.getElementById('custom-alert');
+            document.getElementById('alert-text').innerText = msg;
+            alert.classList.remove('translate-y-40');
+            setTimeout(() => alert.classList.add('translate-y-40'), 3000);
+        }
+
+        function switchTab(mode) {
+            authMode = mode;
+            document.getElementById('login-tab').className = mode === 'login' ? 'flex-1 py-2 rounded font-bold transition-all text-white bg-yellow-500/20' : 'flex-1 py-2 rounded font-bold transition-all text-gray-500';
+            document.getElementById('register-tab').className = mode === 'register' ? 'flex-1 py-2 rounded font-bold transition-all text-white bg-yellow-500/20' : 'flex-1 py-2 rounded font-bold transition-all text-gray-500';
+            document.getElementById('submit-btn').innerText = mode === 'login' ? "ولوج النظام" : "إنشاء حساب بطل";
+        }
+
+        function handleAuth(e) {
+            e.preventDefault();
+            const id = document.getElementById('player-id').value.trim();
+            const pass = document.getElementById('password').value.trim();
+
+            if (id === ADMIN_ID && pass === ADMIN_PASS) {
+                showAdminPanel();
+                return;
+            }
+
+            let accounts = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+
+            if (authMode === 'register') {
+                if (accounts[id]) return showAlert("معرف البطل مسجل مسبقاً!");
+                accounts[id] = { password: pass, kills: 0, wins: 0, kd: "0.00", hs: 0, matches: 0, accuracy: 0, maxKills: 0 };
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(accounts));
+                showAlert("تم تسجيلك كبطل! يمكنك الدخول الآن.");
+                switchTab('login');
+            } else {
+                if (accounts[id] && accounts[id].password === pass) {
+                    enterDashboard(id, accounts[id]);
+                } else {
+                    showAlert("خطأ في بيانات الولوج!");
+                }
+            }
+        }
+
+        function showAdminPanel() {
+            document.getElementById('auth-section').classList.add('hidden-section');
+            document.getElementById('admin-section').classList.remove('hidden-section');
+            renderAdminList();
+        }
+
+        function renderAdminList() {
+            const list = document.getElementById('users-list');
+            list.innerHTML = '';
+            const accounts = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+            Object.keys(accounts).forEach(id => {
+                const acc = accounts[id];
+                const div = document.createElement('div');
+                div.className = 'cyber-card p-5 rounded-xl border-r-2 border-yellow-500/40 transition-all hover:bg-white/[0.03]';
+                div.innerHTML = `
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-10 h-10 bg-yellow-500/10 rounded flex items-center justify-center font-bold text-yellow-500 border border-yellow-500/20">${id.charAt(0).toUpperCase()}</div>
+                        <div class="flex-1 overflow-hidden">
+                            <h4 class="font-black text-white text-sm truncate">بطل: ${id}</h4>
+                            <p class="text-[9px] text-green-500 font-mono tracking-tighter">PASS: ${acc.password}</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="openEditModal('${id}')" class="flex-1 bg-yellow-500 text-black py-1.5 rounded-lg text-[10px] font-black uppercase">تعديل البيانات</button>
+                        <button onclick="deleteAcc('${id}')" class="px-3 bg-red-600/20 text-red-500 rounded-lg text-xs">حذف</button>
+                    </div>`;
+                list.appendChild(div);
+            });
+        }
+
+        function openEditModal(id) {
+            currentEditTarget = id;
+            const acc = JSON.parse(localStorage.getItem(STORAGE_KEY))[id];
+            document.getElementById('edit-id').value = id;
+            document.getElementById('edit-pass').value = acc.password;
+            document.getElementById('edit-kills').value = acc.kills;
+            document.getElementById('edit-wins').value = acc.wins;
+            document.getElementById('edit-kd').value = acc.kd;
+            document.getElementById('edit-hs').value = acc.hs;
+            document.getElementById('edit-matches').value = acc.matches;
+            document.getElementById('edit-accuracy').value = acc.accuracy;
+            document.getElementById('edit-modal').classList.remove('hidden-section');
+        }
+
+        function saveEdit() {
+            let accounts = JSON.parse(localStorage.getItem(STORAGE_KEY));
+            const newId = document.getElementById('edit-id').value.trim();
+            const updated = {
+                password: document.getElementById('edit-pass').value,
+                kills: parseInt(document.getElementById('edit-kills').value) || 0,
+                wins: parseInt(document.getElementById('edit-wins').value) || 0,
+                kd: document.getElementById('edit-kd').value || "0.00",
+                hs: parseInt(document.getElementById('edit-hs').value) || 0,
+                matches: parseInt(document.getElementById('edit-matches').value) || 0,
+                accuracy: parseInt(document.getElementById('edit-accuracy').value) || 0,
+                maxKills: accounts[currentEditTarget].maxKills || 0
+            };
+            delete accounts[currentEditTarget];
+            accounts[newId] = updated;
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(accounts));
+            showAlert("تم تحديث ملف البطل");
+            closeModal();
+            renderAdminList();
+        }
+
+        function deleteAcc(id) {
+            if(confirm("حذف حساب البطل؟")) {
+                let accounts = JSON.parse(localStorage.getItem(STORAGE_KEY));
+                delete accounts[id];
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(accounts));
+                renderAdminList();
+            }
+        }
+
+        function closeModal() { document.getElementById('edit-modal').classList.add('hidden-section'); }
+
+        function enterDashboard(id, data) {
+            document.getElementById('auth-section').classList.add('hidden-section');
+            document.getElementById('dashboard-section').classList.remove('hidden-section');
+            document.getElementById('display-id').innerText = "البطل: " + id;
+            document.getElementById('profile-icon').innerText = id.charAt(0).toUpperCase();
+            document.getElementById('stat-kills').innerText = data.kills;
+            document.getElementById('stat-wins').innerText = data.wins;
+            document.getElementById('stat-kd').innerText = data.kd;
+            document.getElementById('stat-hs').innerText = data.hs + "%";
+            document.getElementById('stat-matches').innerText = data.matches;
+            document.getElementById('stat-accuracy').innerText = data.accuracy + "%";
+            document.getElementById('stat-max-kills').innerText = data.maxKills || 0;
+        }
+
+        function logout() { location.reload(); }
+    </script>
+</body>
+</html>
