@@ -1,0 +1,70 @@
+:root {
+    --gold: #ffb400;
+    --cyber-blue: #00f2ff;
+    --dark-core: #050a14;
+}
+
+body {
+    font-family: 'Cairo', sans-serif;
+    background-color: var(--dark-core);
+    color: #e2e8f0;
+    margin: 0;
+    text-align: right;
+}
+
+.font-game { font-family: 'Orbitron', sans-serif; }
+
+.gold-text {
+    background: linear-gradient(to bottom, #ffb400, #fff385, #b38728);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 900;
+}
+
+.cyber-card {
+    background: rgba(10, 20, 35, 0.8);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 180, 0, 0.15);
+    position: relative;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.gold-btn {
+    background: linear-gradient(45deg, #bf953f, #fcf6ba, #b38728);
+    color: #050a14;
+    font-weight: 900;
+    transition: 0.3s;
+    text-transform: uppercase;
+}
+
+.gold-btn:hover {
+    box-shadow: 0 0 20px rgba(255, 180, 0, 0.5);
+    transform: scale(1.02);
+}
+
+.custom-input {
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: white;
+    transition: 0.3s;
+    text-align: center;
+}
+
+.custom-input:focus {
+    border-color: var(--gold);
+    outline: none;
+    box-shadow: 0 0 10px rgba(255, 180, 0, 0.2);
+}
+
+.hidden-section { display: none !important; }
+
+.stat-box {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: 0.3s;
+}
+
+.stat-box:hover {
+    border-color: var(--gold);
+    background: rgba(255, 180, 0, 0.05);
+}
